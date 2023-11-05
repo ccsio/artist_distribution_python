@@ -43,7 +43,7 @@ def get_playlist(access_token,url):
         return [False, response.status_code]
 
 
-def display_graph(tracks):
+def display_graph(tracks,name="Artist Disribution",owner="unknown",desc=""):
     total_tracks = len(tracks)
     artists = {}
     for i in tracks:
@@ -69,7 +69,9 @@ def display_graph(tracks):
     p = plt.gcf()
     p.gca().add_artist(my_circle)
 
-    plt.title("Artist Distribution")
+
+    plt.suptitle(name,fontsize=24)
+    plt.title(f"By {owner}", fontsize=14,va="top")
     plt.show()
 
 
@@ -86,13 +88,18 @@ if is_authorized:
     pl_id = input("Input the url of your playlist: ")
     pl_id = pl_id.split("/")[-1] 
     pl_url = f"https://api.spotify.com/v1/playlists/{pl_id}"
-        
+    
     tracks = []
 
     success, data = get_playlist(access_token,pl_url)
     if success:
         data = dict(data.json())
         track_total = data["tracks"]["total"]
+        
+        pl_name = data["name"]
+        owner = data["owner"]["display_name"]
+        description = data["description"]
+        
         tracks.extend(data["tracks"]["items"])
 
         if track_total - 101 > 0:
@@ -105,7 +112,7 @@ if is_authorized:
                     tracks.extend(data["items"])
                     pl_url = data["next"]
 
-    display_graph(tracks)
+    display_graph(tracks,pl_name,owner)
 
 
 else:
