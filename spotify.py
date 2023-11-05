@@ -5,28 +5,35 @@ import json
 import os
 import matplotlib.pyplot as plt
 
-with open(".//.env") as f:
-    x = f.readlines()
-    client_token = x[0].split('"')[1]
-    secret_token = x[1].split('"')[1]
-    
-
-auth_url = "https://accounts.spotify.com/api/token"
-
-credentials = f"{client_token}:{secret_token}"
-encoded_credentials = base64.b64encode(credentials.encode()).decode()
-
-headers = {
-    'Authorization': f'Basic {encoded_credentials}'
-}
-
-body = {
-    'grant_type': 'client_credentials'
-}
-
 # with open("C:\\Users\\Luky\\Documents\\Python\\spotify\\data.json", "r") as f: 
 #     data = f.read()
 #     data = dict(json.loads(data))
+
+
+def authorize(client_token,secret_token):
+    auth_url = "https://accounts.spotify.com/api/token"
+
+    credentials = f"{client_token}:{secret_token}"
+    encoded_credentials = base64.b64encode(credentials.encode()).decode()
+
+    headers = {
+        'Authorization': f'Basic {encoded_credentials}'
+    }
+    body = {
+        'grant_type': 'client_credentials'
+    }
+    response = requests.post(auth_url, data=body, headers=headers)
+
+    if response.status_code == 200:
+        success = True
+        access_token = response.json()['access_token']
+    else:
+        success = False
+        access_token = None
+        response = response.status_code
+
+    return (success, access_token, response)
+
 
 def get_playlist(access_token,url):
     headers = {
@@ -38,7 +45,6 @@ def get_playlist(access_token,url):
     else:
         print(f'Failed to get access playlist. Status code: {response.status_code}')
         return [False, response.status_code]
-
 
 
 def display_graph(data):
@@ -73,14 +79,15 @@ def display_graph(data):
 
 
 
+with open(".//.env") as f:
+    x = f.readlines()
+    client_token = x[0].split('"')[1]
+    secret_token = x[1].split('"')[1]
+
+is_authorized, access_token, status_code = authorize(client_token,secret_token)
 
 
-
-response = requests.post(auth_url, data=body, headers=headers)
-
-# Parse the response
-if response.status_code == 200:
-    access_token = response.json()['access_token']
+if is_authorized:
     pl_id = input("input the url of your playlist: ")
     pl_id = pl_id.split("/")[-1] 
     pl_url = f"https://api.spotify.com/v1/playlists/{pl_id}"
@@ -106,4 +113,4 @@ if response.status_code == 200:
 
 
 else:
-    print(f'Failed to get access token. Status code: {response.status_code}')
+    print(f'Failed to get access token. Status code: {status_code}')
