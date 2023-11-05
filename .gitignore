@@ -2,3 +2,5 @@
 .env.example
 .env.local
 .env.staging
+test.py
+test.json

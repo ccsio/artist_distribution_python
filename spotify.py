@@ -2,12 +2,8 @@ import requests
 import base64
 from pprint import pprint
 import json
-import os
 import matplotlib.pyplot as plt
-
-# with open("C:\\Users\\Luky\\Documents\\Python\\spotify\\data.json", "r") as f: 
-#     data = f.read()
-#     data = dict(json.loads(data))
+from math import ceil
 
 
 def authorize(client_token,secret_token):
@@ -47,8 +43,7 @@ def get_playlist(access_token,url):
         return [False, response.status_code]
 
 
-def display_graph(data):
-    tracks = data["tracks"]["items"]
+def display_graph(tracks):
     total_tracks = len(tracks)
     artists = {}
     for i in tracks:
@@ -88,28 +83,29 @@ is_authorized, access_token, status_code = authorize(client_token,secret_token)
 
 
 if is_authorized:
-    pl_id = input("input the url of your playlist: ")
+    pl_id = input("Input the url of your playlist: ")
     pl_id = pl_id.split("/")[-1] 
     pl_url = f"https://api.spotify.com/v1/playlists/{pl_id}"
+        
+    tracks = []
 
-    success, data = get_playlist(access_token, pl_url)
-
+    success, data = get_playlist(access_token,pl_url)
     if success:
         data = dict(data.json())
-        tracks = data["tracks"]["items"]
+        track_total = data["tracks"]["total"]
+        tracks.extend(data["tracks"]["items"])
 
-        new_url = data["tracks"]["next"]
+        if track_total - 101 > 0:
+            z = ceil((track_total-101) / 100)
+            pl_url = data["tracks"]["next"]
+            for i in range(z):
+                success, data = get_playlist(access_token,pl_url)
+                if success:
+                    data = dict(data.json())
+                    tracks.extend(data["items"])
+                    pl_url = data["next"]
 
-        while new_url is not None:
-            new_url = data["tracks"]["next"]
-            print(new_url)
-            success, new_data = get_playlist(access_token,new_url)
-            pprint(new_data)
-
-        display_graph(data)
-
-    else:
-        print(f'Failed to get playlist. Status code: {data}')
+    display_graph(tracks)
 
 
 else:
