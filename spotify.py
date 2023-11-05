@@ -78,8 +78,8 @@ def display_graph(tracks,name="Artist Disribution",owner="unknown",desc=""):
 
 with open(".//.env") as f:
     x = f.readlines()
-    client_token = x[0].split('"')[1]
-    secret_token = x[1].split('"')[1]
+    client_token = x[0]
+    secret_token = x[1]
 
 is_authorized, access_token, status_code = authorize(client_token,secret_token)
 
